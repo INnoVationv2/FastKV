@@ -1,4 +1,4 @@
-package utils
+package FastKV
 
 type Entry struct {
 	key   []byte
