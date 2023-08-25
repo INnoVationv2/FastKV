@@ -1,7 +1,6 @@
 package cms
 
 import (
-	"math"
 	"unsafe"
 )
 
@@ -38,7 +37,7 @@ func (c *CMS) Frequency(key string) int {
 	hash2 := uint32(hash64 >> 4)
 	combinedHash := uint64(hash1)
 
-	frequency := uint8(math.MaxUint8)
+	frequency := uint8(15)
 	for i := 0; i < c.hashFuncNum; i++ {
 		frequency = minUint8(frequency, c.bitArray.get(combinedHash))
 		combinedHash += uint64(hash2)

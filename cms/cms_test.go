@@ -20,20 +20,49 @@ import (
 	"testing"
 )
 
+func add(cms *CMS, stringSet Set, group *sync.WaitGroup) {
+	for k := range stringSet {
+		for i := 0; i < 10; i++ {
+			cms.Increment(k)
+		}
+	}
+	group.Done()
+}
+
 func Test_Basic_CRUD(t *testing.T) {
-	for i := 0; i < 100; i++ {
-		cms := NewCMS(100)
-		str := randString()
-		cms.Increment(str)
-		if cms.Frequency(str) == 0 {
-			log.Fatalf("Frequency Equal 0")
+	visitTimes := 10
+	dataSz := int(1e6)
+
+	stringSet := getRandomStringSet(dataSz)
+
+	cms1 := NewCMS(dataSz)
+	cms2 := NewCMS(dataSz)
+	//group := &sync.WaitGroup{}
+	//group.Add(2)
+	//go add(cms1, stringSet, group)
+	//go add(cms2, stringSet, group)
+	//group.Wait()
+	for k := range stringSet {
+		for i := 0; i < visitTimes; i++ {
+			cms1.Increment(k)
+			cms2.Increment(k)
 		}
 	}
 
-	fmt.Printf("[Basic_CRUD]Basic CRUD is working fine\n")
+	sum1, sum2 := 0, 0
+	for k := range stringSet {
+		sum1 += cms1.Frequency(k)
+		sum2 += cms2.Frequency(k)
+	}
+
+	if sum1 != sum2 {
+		log.Fatalf("Not Equal!")
+	}
+
+	fmt.Printf("[Basic_CRUD]%d==%d, Correct!\n", sum1, sum2)
 }
 
-// 测试并发是否正常
+// 测试并发结果和循序执行是否相等
 func Test_Concurrent_CRUD(t *testing.T) {
 	visitTimes := 10
 	dataSz := int(1e6)
@@ -41,42 +70,42 @@ func Test_Concurrent_CRUD(t *testing.T) {
 	stringSet := getRandomStringSet(dataSz)
 
 	group := &sync.WaitGroup{}
+
 	cms1 := NewCMS(dataSz)
 	cms2 := NewCMS(dataSz)
 	for k := range stringSet {
+		val := k
 		for i := 0; i < visitTimes; i++ {
-			cms1.Increment(k)
+			cms1.Increment(val)
 
 			group.Add(1)
 			go func() {
-				cms2.Increment(k)
+				cms2.Increment(val)
 				group.Done()
 			}()
 		}
 	}
 
 	group.Wait()
-
 	sum1, sum2 := 0, 0
 	for k := range stringSet {
 		sum1 += cms1.Frequency(k)
-		sum2 += cms1.Frequency(k)
+		sum2 += cms2.Frequency(k)
 	}
 
 	if sum1 != sum2 {
-		log.Fatalf("Not Equal!")
+		log.Fatalf("[Concurrent_CRUD]%d!=%d", sum1, sum2)
 	}
 
-	fmt.Printf("[Concurrent_CRUD]%d==%d, Concurrent Access is working fine\n", sum1, sum2)
+	fmt.Printf("[Concurrent_CRUD]%d==%d, Correct!!!\n", sum1, sum2)
 }
 
 // 评估误差率
-// 创建一个大小为x的CMS
 // 生成x个不同的字符串
+// 创建一个大小为x的CMS
 // 每个字符串访问y次
-//
-//	CMS返回的访问频率必然大于等于y，
-//	用CMS返回的结果-y，然后除以x，得到平均误差
+// CMS返回的Frequency必然大于等于y，
+// 用CMS返回的Frequency-y，然后除以x，得到平均误差
 func Test_Error_Rate(t *testing.T) {
 	visitTimes := 10
 	dataSz := int(1e6)
@@ -116,16 +145,13 @@ func Test_Reset(t *testing.T) {
 	for k := range stringSet {
 		sum += uint64(cms.Frequency(k))
 	}
-
 	fmt.Printf("[Reset]Average Frequency: %f\n", float64(sum)/1000000.0)
 
 	cms.Reset()
-
 	sum = uint64(0)
 	for k := range stringSet {
 		sum += uint64(cms.Frequency(k))
 	}
-
 	fmt.Printf("[Reset]Average Frequency After Reset: %f\n", float64(sum)/1000000.0)
 
 }

@@ -10,7 +10,7 @@ type LockFreeBitArray struct {
 	arrayLen  int
 	blockMask uint64
 
-	fail int
+	//fail uint32
 }
 
 func NewLockBitArray(entryNum int) *LockFreeBitArray {
@@ -30,7 +30,7 @@ func NewLockBitArray(entryNum int) *LockFreeBitArray {
 		arrayLen:  sz,
 		blockMask: uint64(blockMask),
 
-		fail: 0,
+		//fail: 0,
 	}
 }
 
@@ -53,7 +53,7 @@ func (l *LockFreeBitArray) incrementAt(pos uint64) {
 			break
 		}
 
-		l.fail++
+		//atomic.AddUint32(&l.fail, 1)
 	}
 }
 
