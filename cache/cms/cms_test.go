@@ -14,13 +14,14 @@
 package cms
 
 import (
+	"FastKV/cache"
 	"fmt"
 	"log"
 	"sync"
 	"testing"
 )
 
-func add(cms *CMS, stringSet Set, group *sync.WaitGroup) {
+func add(cms *CMS, stringSet cache.Set, group *sync.WaitGroup) {
 	for k := range stringSet {
 		for i := 0; i < 10; i++ {
 			cms.Increment(k)
@@ -33,7 +34,7 @@ func Test_Basic_CRUD(t *testing.T) {
 	visitTimes := 10
 	dataSz := int(1e6)
 
-	stringSet := getRandomStringSet(dataSz)
+	stringSet := cache.GetRandomStringSet(dataSz)
 
 	cms1 := NewCMS(dataSz)
 	cms2 := NewCMS(dataSz)
@@ -63,11 +64,12 @@ func Test_Basic_CRUD(t *testing.T) {
 }
 
 // 测试并发结果和循序执行是否相等
+// 需要关闭reset函数，即注释Increment()中的后4行
 func Test_Concurrent_CRUD(t *testing.T) {
 	visitTimes := 10
-	dataSz := int(1e6)
+	dataSz := int(1e4)
 
-	stringSet := getRandomStringSet(dataSz)
+	stringSet := cache.GetRandomStringSet(dataSz)
 
 	group := &sync.WaitGroup{}
 
@@ -110,7 +112,7 @@ func Test_Error_Rate(t *testing.T) {
 	visitTimes := 10
 	dataSz := int(1e6)
 
-	stringSet := getRandomStringSet(dataSz)
+	stringSet := cache.GetRandomStringSet(dataSz)
 
 	cms := NewCMS(dataSz)
 	for k := range stringSet {
@@ -121,9 +123,10 @@ func Test_Error_Rate(t *testing.T) {
 
 	sum := 0
 	for k := range stringSet {
-		sum += cms.Frequency(k) - visitTimes
+		sum += cms.Frequency(k)
 	}
 
+	fmt.Println(sum)
 	fmt.Printf("[Error_Rate]Average Error Distance： %f\n", float64(sum)/float64(dataSz))
 }
 
@@ -132,9 +135,9 @@ func Test_Reset(t *testing.T) {
 	visitTimes := 10
 	dataSz := int(1e6)
 
-	stringSet := getRandomStringSet(dataSz)
+	stringSet := cache.GetRandomStringSet(dataSz)
 
-	cms := NewCMS(1000000)
+	cms := NewCMS(dataSz)
 	for k := range stringSet {
 		for i := 0; i < visitTimes; i++ {
 			cms.Increment(k)
@@ -147,11 +150,10 @@ func Test_Reset(t *testing.T) {
 	}
 	fmt.Printf("[Reset]Average Frequency: %f\n", float64(sum)/1000000.0)
 
-	cms.Reset()
+	cms.reset()
 	sum = uint64(0)
 	for k := range stringSet {
 		sum += uint64(cms.Frequency(k))
 	}
 	fmt.Printf("[Reset]Average Frequency After Reset: %f\n", float64(sum)/1000000.0)
-
 }

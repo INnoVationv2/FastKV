@@ -1,21 +1,22 @@
 package cms
 
 import (
+	"FastKV/cache"
 	"sync/atomic"
 	"unsafe"
 )
 
-type LockFreeBitArray struct {
+type LockFree4BitArray struct {
 	array     []unsafe.Pointer
 	arrayLen  int
 	blockMask uint64
-
-	//fail uint32
 }
 
-func NewLockBitArray(entryNum int) *LockFreeBitArray {
+// 4个hash，一个元素
+func NewLockBitArray(entryNum int) *LockFree4BitArray {
 	// 比entryNum大的2的幂
-	sz := ceilingPowerOfTwo((entryNum + 1) >> 1)
+	sz := cache.CeilingPowerOfTwo((entryNum + 1) >> 1)
+	//sz := entryNum >> 1
 	// 2的幂，必然是只有一个1，其余位都是0，减去1二进制就全是1，加速查找
 	blockMask := sz - 1
 
@@ -25,7 +26,7 @@ func NewLockBitArray(entryNum int) *LockFreeBitArray {
 		array[i] = unsafe.Pointer(&val)
 	}
 
-	return &LockFreeBitArray{
+	return &LockFree4BitArray{
 		array:     array,
 		arrayLen:  sz,
 		blockMask: uint64(blockMask),
@@ -35,7 +36,7 @@ func NewLockBitArray(entryNum int) *LockFreeBitArray {
 }
 
 // 8bit, 每个元素占据4bit，每个能存储2个数据
-func (l *LockFreeBitArray) incrementAt(pos uint64) {
+func (l *LockFree4BitArray) incrementAt(pos uint64) {
 	tableIdx := pos >> 1 & l.blockMask
 	counterIdx := (pos & 0x01) << 2
 	mask := uint8(0xf) << counterIdx
@@ -53,18 +54,17 @@ func (l *LockFreeBitArray) incrementAt(pos uint64) {
 			break
 		}
 
-		//atomic.AddUint32(&l.fail, 1)
 	}
 }
 
-func (l *LockFreeBitArray) get(pos uint64) uint8 {
+func (l *LockFree4BitArray) get(pos uint64) uint8 {
 	tableIdx := pos >> 1 & l.blockMask
 	counterIdx := (pos & 0x01) << 2
 	counter := *(*uint8)(atomic.LoadPointer(&l.array[tableIdx]))
 	return (counter >> counterIdx) & 0xf
 }
 
-func (l *LockFreeBitArray) reset() {
+func (l *LockFree4BitArray) reset() {
 	for i := 0; i < l.arrayLen; i++ {
 		for {
 			oldCounterPtr := atomic.LoadPointer(&l.array[i])

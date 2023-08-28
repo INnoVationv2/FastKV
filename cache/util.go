@@ -1,8 +1,10 @@
-package cms
+package cache
 
-import "math/rand"
+import (
+	"math/rand"
+)
 
-func ceilingPowerOfTwo(i int) int {
+func CeilingPowerOfTwo(i int) int {
 	i--
 	i |= i >> 1
 	i |= i >> 2
@@ -14,14 +16,14 @@ func ceilingPowerOfTwo(i int) int {
 	return i
 }
 
-func minUint8(x, y uint8) uint8 {
+func MinUint8(x, y uint8) uint8 {
 	if x <= y {
 		return x
 	}
 	return y
 }
 
-func randString() string {
+func RandString() string {
 	res := ""
 	for i := 0; i < 15+rand.Intn(20); i++ {
 		res += string(rune(rand.Intn(100)))
@@ -31,10 +33,10 @@ func randString() string {
 
 type Set map[string]*struct{}
 
-func getRandomStringSet(sz int) Set {
+func GetRandomStringSet(sz int) Set {
 	set := make(Set)
 	for i := 0; i < sz; i++ {
-		str := randString()
+		str := RandString()
 		_, ok := set[str]
 		if ok {
 			continue
