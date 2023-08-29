@@ -1,7 +1,7 @@
 package cms
 
 import (
-	"FastKV/cache"
+	"FastKV/cache/util"
 	"sync/atomic"
 	"unsafe"
 )
@@ -45,7 +45,7 @@ func (c *CMS) Frequency(key string) int {
 
 	frequency := uint8(15)
 	for i := 0; i < c.hashFuncNum; i++ {
-		frequency = cache.MinUint8(frequency, c.bitArray.get(combinedHash))
+		frequency = util.MinUint8(frequency, c.bitArray.get(combinedHash))
 		combinedHash += uint64(hash2)
 	}
 	return int(frequency)

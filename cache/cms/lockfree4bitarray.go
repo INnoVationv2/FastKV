@@ -1,7 +1,7 @@
 package cms
 
 import (
-	"FastKV/cache"
+	"FastKV/cache/util"
 	"sync/atomic"
 	"unsafe"
 )
@@ -12,10 +12,10 @@ type LockFree4BitArray struct {
 	blockMask uint64
 }
 
-// 4个hash，一个元素
+// NewLockBitArray 4个hash，一个元素
 func NewLockBitArray(entryNum int) *LockFree4BitArray {
 	// 比entryNum大的2的幂
-	sz := cache.CeilingPowerOfTwo((entryNum + 1) >> 1)
+	sz := util.CeilingPowerOfTwo((entryNum + 1) >> 1)
 	//sz := entryNum >> 1
 	// 2的幂，必然是只有一个1，其余位都是0，减去1二进制就全是1，加速查找
 	blockMask := sz - 1
@@ -30,8 +30,6 @@ func NewLockBitArray(entryNum int) *LockFree4BitArray {
 		array:     array,
 		arrayLen:  sz,
 		blockMask: uint64(blockMask),
-
-		//fail: 0,
 	}
 }
 

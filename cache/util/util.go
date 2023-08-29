@@ -1,6 +1,8 @@
-package cache
+package util
 
 import (
+	"FastKV/cache/conf"
+	"fmt"
 	"math/rand"
 )
 
@@ -31,10 +33,8 @@ func RandString() string {
 	return res
 }
 
-type Set map[string]*struct{}
-
-func GetRandomStringSet(sz int) Set {
-	set := make(Set)
+func GetRandomStringSet(sz int) map[string]*struct{} {
+	set := make(map[string]*struct{})
 	for i := 0; i < sz; i++ {
 		str := RandString()
 		_, ok := set[str]
@@ -44,4 +44,10 @@ func GetRandomStringSet(sz int) Set {
 		set[str] = nil
 	}
 	return set
+}
+
+func Debug(str string, args ...interface{}) {
+	if conf.Conf.DebugMode {
+		fmt.Printf(str, args...)
+	}
 }

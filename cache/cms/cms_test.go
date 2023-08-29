@@ -14,14 +14,14 @@
 package cms
 
 import (
-	"FastKV/cache"
+	"FastKV/cache/util"
 	"fmt"
 	"log"
 	"sync"
 	"testing"
 )
 
-func add(cms *CMS, stringSet cache.Set, group *sync.WaitGroup) {
+func add(cms *CMS, stringSet map[string]*struct{}, group *sync.WaitGroup) {
 	for k := range stringSet {
 		for i := 0; i < 10; i++ {
 			cms.Increment(k)
@@ -34,7 +34,7 @@ func Test_Basic_CRUD(t *testing.T) {
 	visitTimes := 10
 	dataSz := int(1e6)
 
-	stringSet := cache.GetRandomStringSet(dataSz)
+	stringSet := util.GetRandomStringSet(dataSz)
 
 	cms1 := NewCMS(dataSz)
 	cms2 := NewCMS(dataSz)
@@ -69,7 +69,7 @@ func Test_Concurrent_CRUD(t *testing.T) {
 	visitTimes := 10
 	dataSz := int(1e4)
 
-	stringSet := cache.GetRandomStringSet(dataSz)
+	stringSet := util.GetRandomStringSet(dataSz)
 
 	group := &sync.WaitGroup{}
 
@@ -112,7 +112,7 @@ func Test_Error_Rate(t *testing.T) {
 	visitTimes := 10
 	dataSz := int(1e6)
 
-	stringSet := cache.GetRandomStringSet(dataSz)
+	stringSet := util.GetRandomStringSet(dataSz)
 
 	cms := NewCMS(dataSz)
 	for k := range stringSet {
@@ -135,7 +135,7 @@ func Test_Reset(t *testing.T) {
 	visitTimes := 10
 	dataSz := int(1e6)
 
-	stringSet := cache.GetRandomStringSet(dataSz)
+	stringSet := util.GetRandomStringSet(dataSz)
 
 	cms := NewCMS(dataSz)
 	for k := range stringSet {
