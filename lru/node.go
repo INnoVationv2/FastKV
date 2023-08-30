@@ -1,4 +1,4 @@
-package corekv_diy
+package lru
 
 type Node struct {
 	key   any

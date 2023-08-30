@@ -1,4 +1,4 @@
-package corekv_diy
+package lru
 
 import (
 	"fmt"
@@ -51,7 +51,7 @@ func (l *LRU) Get(k string) (string, bool) {
 	return node.value.(string), true
 }
 
-func (l *LRU) length() (length uint32) {
+func (l *LRU) length() (length int) {
 	for tmp := l.head.next; tmp != l.head; tmp = tmp.next {
 		length++
 	}
